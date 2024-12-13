@@ -20,11 +20,25 @@ if uploaded_file:
     # Sidebar Title
     st.sidebar.title("Flight Data Insights")
 
-    # Filter by Airline
-    airline_filter = st.sidebar.selectbox("Select Airline", df["Airline"].unique())
-    filtered_data = df[df["Airline"] == airline_filter]
-    st.subheader(f"Flights by Airline: {airline_filter}")
+    # Filter by Airline, Source City and Destination City
+    airline_filter = st.sidebar.selectbox("Select Airline",  ["All"] + list(df["Airline"].unique()))
+    source_city = st.sidebar.selectbox("Select Source City",  ["All"] + list(df["Source"].unique()))
+    destination_city = st.sidebar.selectbox("Select Destination City",  ["All"] + list(df["Destination"].unique()))
+
+    filtered_data = df[
+        ((df["Airline"] == airline_filter) | (airline_filter == "All")) &
+        ((df["Source"] == source_city) | (source_city == "All")) &
+        ((df["Destination"] == destination_city) | (destination_city == "All"))
+        ]
+    # filtered_data = df[(df["Airline"] == airline_filter) & (df["Source"] == source_city) & (df["Destination"] == destination_city)]
+
+    # Price By Airline table
+    st.subheader(f"Flights by Airline: {airline_filter}, from {source_city} to {destination_city}")
     st.dataframe(filtered_data)
+
+    # route_data = df[(df["Source"] == source_city) & (df["Destination"] == destination_city)]
+    # st.subheader(f"Flights from {source_city} to {destination_city}")
+    # st.dataframe(route_data)
 
     # Price by Distribution (Boxplot for all airlines)
     st.subheader("Price Distribution by Airline")
@@ -117,13 +131,7 @@ if uploaded_file:
                             title="Flight Distribution by Route")
     st.plotly_chart(fig_route_dist)
 
-    # Filters for Source City and Destination City
-    source_city = st.sidebar.selectbox("Select Source City", df["Source"].unique())
-    destination_city = st.sidebar.selectbox("Select Destination City", df["Destination"].unique())
-    route_data = df[(df["Source"] == source_city) & (df["Destination"] == destination_city)]
-
-    st.subheader(f"Flights from {source_city} to {destination_city}")
-    st.dataframe(route_data)
+   
 
     # Duration vs Price
     st.subheader("Duration vs Price")

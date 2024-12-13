@@ -2,17 +2,46 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# App Title
-st.title("Flight Dashboard")
-st.write("This dashboard displays the flight data insights and allows stakeholders to filter and search the records.")
 
 # File Uploader
-uploaded_file = st.file_uploader("Upload your flight dataset (XLSX)", type="xlsx")
+# uploaded_file = st.file_uploader("Upload your flight dataset (XLSX)", type="xlsx")
 
-if uploaded_file:
+
+# Function to load the processed data
+@st.cache_data
+def load_data(filepath="data/Flight_datasets.xlsx"):
+    """
+    Loads the processed dataset.
+
+    Args:
+        filepath (str): Path to the processed dataset.
+
+    Returns:
+        pd.DataFrame: Loaded data.
+    """
+    try:
+        df = pd.read_excel(filepath)
+        return df
+    except FileNotFoundError:
+        st.error("Processed dataset not found. Please run the processing script first.")
+        return pd.DataFrame()
+
+
+# Main function to run the Streamlit app
+def main():
     # Load the Excel file
-    df = pd.read_excel(uploaded_file)
+    # df = pd.read_excel(uploaded_file)
 
+    # App Title
+    st.title("Flight Dashboard")
+    st.write("This dashboard displays the flight data insights and allows stakeholders to filter and search the records.")
+
+    # Load the processed data
+    df = load_data()
+    if df.empty:
+        st.warning("No data to display. Please ensure the dataset is processed and available.")
+        return
+    
     # Display Dataset Preview
     st.write("Dataset Preview:")
     st.dataframe(df)
@@ -20,11 +49,25 @@ if uploaded_file:
     # Sidebar Title
     st.sidebar.title("Flight Data Insights")
 
-    # Filter by Airline
-    airline_filter = st.sidebar.selectbox("Select Airline", df["Airline"].unique())
-    filtered_data = df[df["Airline"] == airline_filter]
-    st.subheader(f"Flights by Airline: {airline_filter}")
+    # Filter by Airline, Source City and Destination City
+    airline_filter = st.sidebar.selectbox("Select Airline",  ["All"] + list(df["Airline"].unique()))
+    source_city = st.sidebar.selectbox("Select Source City",  ["All"] + list(df["Source"].unique()))
+    destination_city = st.sidebar.selectbox("Select Destination City",  ["All"] + list(df["Destination"].unique()))
+
+    filtered_data = df[
+        ((df["Airline"] == airline_filter) | (airline_filter == "All")) &
+        ((df["Source"] == source_city) | (source_city == "All")) &
+        ((df["Destination"] == destination_city) | (destination_city == "All"))
+        ]
+    # filtered_data = df[(df["Airline"] == airline_filter) & (df["Source"] == source_city) & (df["Destination"] == destination_city)]
+
+    # Price By Airline table
+    st.subheader(f"Flights by Airline: {airline_filter}, from {source_city} to {destination_city}")
     st.dataframe(filtered_data)
+
+    # route_data = df[(df["Source"] == source_city) & (df["Destination"] == destination_city)]
+    # st.subheader(f"Flights from {source_city} to {destination_city}")
+    # st.dataframe(route_data)
 
     # Price by Distribution (Boxplot for all airlines)
     st.subheader("Price Distribution by Airline")
@@ -117,14 +160,6 @@ if uploaded_file:
                             title="Flight Distribution by Route")
     st.plotly_chart(fig_route_dist)
 
-    # Filters for Source City and Destination City
-    source_city = st.sidebar.selectbox("Select Source City", df["Source"].unique())
-    destination_city = st.sidebar.selectbox("Select Destination City", df["Destination"].unique())
-    route_data = df[(df["Source"] == source_city) & (df["Destination"] == destination_city)]
-
-    st.subheader(f"Flights from {source_city} to {destination_city}")
-    st.dataframe(route_data)
-
     # Duration vs Price
     st.subheader("Duration vs Price")
     fig_duration_price = px.scatter(filtered_data,
@@ -135,5 +170,10 @@ if uploaded_file:
                                     hover_data=["Source", "Destination"])
     st.plotly_chart(fig_duration_price)
 
-# Footer Note
-st.sidebar.markdown("This dashboard provides insights into flight data.")
+    # Footer Note
+    st.sidebar.markdown("This dashboard provides insights into flight data.")
+
+
+# Entry point for the Streamlit app
+if __name__ == "__main__":
+    main()
