@@ -3,10 +3,6 @@ import pandas as pd
 import plotly.express as px
 
 
-# File Uploader
-# uploaded_file = st.file_uploader("Upload your flight dataset (XLSX)", type="xlsx")
-
-
 # Function to load the processed data
 @st.cache_data
 def load_data(filepath="data/Flight_datasets.xlsx"):
@@ -29,8 +25,6 @@ def load_data(filepath="data/Flight_datasets.xlsx"):
 
 # Main function to run the Streamlit app
 def main():
-    # Load the Excel file
-    # df = pd.read_excel(uploaded_file)
 
     # App Title
     st.title("Flight Dashboard")
@@ -59,15 +53,10 @@ def main():
         ((df["Source"] == source_city) | (source_city == "All")) &
         ((df["Destination"] == destination_city) | (destination_city == "All"))
         ]
-    # filtered_data = df[(df["Airline"] == airline_filter) & (df["Source"] == source_city) & (df["Destination"] == destination_city)]
 
     # Price By Airline table
     st.subheader(f"Flights by Airline: {airline_filter}, from {source_city} to {destination_city}")
     st.dataframe(filtered_data)
-
-    # route_data = df[(df["Source"] == source_city) & (df["Destination"] == destination_city)]
-    # st.subheader(f"Flights from {source_city} to {destination_city}")
-    # st.dataframe(route_data)
 
     # Price by Distribution (Boxplot for all airlines)
     st.subheader("Price Distribution by Airline")
